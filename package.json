@@ -6,10 +6,6 @@
     "lint": "eslint --ext .jsx,.js src",
     "start": "node server.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/noahlotzer/react-simple-boilerplate.git"
-  },
   "keywords": [
     "react",
     "reactjs",
