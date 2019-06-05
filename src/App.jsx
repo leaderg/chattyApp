@@ -1,6 +1,5 @@
 import React, {Component} from 'react';
 
-
 class ChatBar extends Component {
   constructor(props) {
     super(props);
@@ -10,7 +9,12 @@ class ChatBar extends Component {
   }
 
   setUser = event => {
-    this.setState({user: event.target.value});
+    if (event.keyCode == 13) {
+      event.preventDefault();
+      let notification = this.state.user + " has changed their name to " + event.target.value;
+      this.setState({user: event.target.value});
+      console.log(notification);
+    }
   }
 
   formSubmit = evt => {
@@ -26,7 +30,7 @@ class ChatBar extends Component {
   render() {
     return (
       <footer className="chatbar">
-        <input onChange={this.setUser} className="chatbar-username" placeholder={this.state.user} />
+        <input onKeyDown={this.setUser} className="chatbar-username" placeholder={this.state.user} />
         <input onKeyDown={this.formSubmit} className="chatbar-message" placeholder="Type a message and hit ENTER" />
       </footer>
     );
