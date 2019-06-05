@@ -75,6 +75,7 @@ class App extends Component {
     super(props);
     this.state = {
       currentUser: {name: "Anonymous"},
+      usercount: 0,
       messages: [
         {
           id: 'madeupID1',
@@ -124,9 +125,12 @@ class App extends Component {
     this.socket.onmessage = evt => {
       // on receiving a message, add it to the list of messages
       const message = JSON.parse(evt.data)
+      if (message.type === 'usercount') { this.setState({usercount: message.content}) }
+      else {
       console.log(message);
       const messages = this.state.messages.concat(message)
       this.setState({messages})
+    }
     }
   }
 
@@ -135,6 +139,7 @@ class App extends Component {
       <fragment>
         <nav className="navbar">
           <a href="/" className="navbar-brand">Chatty</a>
+          <span>{this.state.usercount} Users Online</span>
         </nav>
         <Messages messages={this.state.messages}/>
         <ChatBar
