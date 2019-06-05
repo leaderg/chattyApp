@@ -13,7 +13,8 @@ class ChatBar extends Component {
       event.preventDefault();
       let notification = this.state.user + " has changed their name to " + event.target.value;
       this.setState({user: event.target.value});
-      console.log(notification);
+      this.props.createNotification(notification);
+
     }
   }
 
@@ -37,26 +38,21 @@ class ChatBar extends Component {
   }
 }
 
-class Messages extends Component {
-  render() {
-    return (
-      <main className="messages">
-        <Message messages={this.props.messages}/>
-        <div className="message system">
-            Anonymous1 changed their name to nomnom.
-        </div>
-      </main>
-    );
-  }
-}
 
 class Message extends Component {
   render() {
-    const renderedMessages = this.props.messages.map((message, index) => {
-      return (<div key={index} className="message">
-              <span className="message-username">{message.username}</span>
-              <span className="message-content">{message.content}</span>
-            </div>)
+    const renderedMessages = this.props.messages.map( message => {
+      if (message.type === 'message') {
+        return (
+          <div key={message.id} className="message">
+            <span className="message-username">{message.username}</span>
+            <span className="message-content">{message.content}</span>
+          </div>
+        );} else {
+          return (
+            <div key={message.id}>{message.content}</div>
+            );
+        }
     })
     return (
       <fragment>{renderedMessages}</fragment>
@@ -64,6 +60,15 @@ class Message extends Component {
   }
 }
 
+class Messages extends Component {
+  render() {
+    return (
+      <main className="messages">
+        <Message messages={this.props.messages}/>
+      </main>
+    );
+  }
+}
 
 class App extends Component {
   constructor(props) {
@@ -72,12 +77,21 @@ class App extends Component {
       currentUser: {name: "Anonymous"},
       messages: [
         {
+          id: 'madeupID1',
+          type: 'message',
           username: "Bob",
           content: "Has anyone seen my marbles?",
         },
         {
+          id: 'madeupID2',
+          type: 'message',
           username: "Anonymous",
           content: "No, I think you lost them. You lost your marbles Bob. You lost them for good."
+        },
+        {
+          id: 'madeupID3',
+          type: 'notification',
+          content: "Anonymous set name to CatsInHats."
         }
       ]
     }
@@ -87,12 +101,18 @@ class App extends Component {
 
   createMessage = (user, input) => {
     const newMessage = {
+      type: 'message',
       username: user,
       content: input
     };
-    // Sets a new message state in React:
-    // const messages = this.state.messages.concat(newMessage)
-    // this.setState({messages})
+    this.socket.send(JSON.stringify(newMessage));
+  }
+
+  createNotification = (notification) => {
+    const newMessage = {
+      type: 'notification',
+      content: notification
+    };
     this.socket.send(JSON.stringify(newMessage));
   }
 
@@ -102,23 +122,26 @@ class App extends Component {
     }
 
     this.socket.onmessage = evt => {
-    // on receiving a message, add it to the list of messages
-    const message = JSON.parse(evt.data)
-    console.log(message);
-    const messages = this.state.messages.concat(message)
-    this.setState({messages})
+      // on receiving a message, add it to the list of messages
+      const message = JSON.parse(evt.data)
+      console.log(message);
+      const messages = this.state.messages.concat(message)
+      this.setState({messages})
     }
   }
 
   render() {
     return (
-<fragment>
-  <nav className="navbar">
-    <a href="/" className="navbar-brand">Chatty</a>
-  </nav>
-  <Messages messages={this.state.messages}/>
-  <ChatBar createMessage={this.createMessage}currentUser={this.state.currentUser.name} />
-</fragment>
+      <fragment>
+        <nav className="navbar">
+          <a href="/" className="navbar-brand">Chatty</a>
+        </nav>
+        <Messages messages={this.state.messages}/>
+        <ChatBar
+        createMessage={this.createMessage}
+        createNotification={this.createNotification}
+        currentUser={this.state.currentUser.name} />
+      </fragment>
     );
   }
 }
