@@ -4,7 +4,8 @@ class ChatBar extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      user: this.props.currentUser
+      user: this.props.currentUser,
+      color: this.props.userColor
     }
   }
 
@@ -23,7 +24,8 @@ class ChatBar extends Component {
       evt.preventDefault();
       const input = evt.target.value;
       const user = this.state.user;
-      this.props.createMessage(user, input);
+      const color = this.state.color;
+      this.props.createMessage(user, color, input);
       evt.target.value = "";
     }
   }
@@ -45,12 +47,12 @@ class Message extends Component {
       if (message.type === 'message') {
         return (
           <div key={message.id} className="message">
-            <span className="message-username">{message.username}</span>
+            <span className="message-username" style={message.styling}>{message.username}</span>
             <span className="message-content">{message.content}</span>
           </div>
         );} else {
           return (
-            <div key={message.id}>{message.content}</div>
+            <div className="notifyMessage" key={message.id}>{message.content}</div>
             );
         }
     })
@@ -74,7 +76,10 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      currentUser: {name: "Anonymous"},
+      currentUser: {
+        name: "Anonymous",
+        color: randomColor()
+        },
       usercount: 0,
       messages: [
         {
@@ -100,11 +105,12 @@ class App extends Component {
 
   socket = new WebSocket(`ws://localhost:3001`);
 
-  createMessage = (user, input) => {
+  createMessage = (user, coloring, input) => {
     const newMessage = {
       type: 'message',
       username: user,
-      content: input
+      content: input,
+      styling: {color: coloring}
     };
     this.socket.send(JSON.stringify(newMessage));
   }
@@ -139,16 +145,21 @@ class App extends Component {
       <fragment>
         <nav className="navbar">
           <a href="/" className="navbar-brand">Chatty</a>
-          <span>{this.state.usercount} Users Online</span>
+          <div className="usercountDisplay">{this.state.usercount} Users Online</div>
         </nav>
         <Messages messages={this.state.messages}/>
         <ChatBar
         createMessage={this.createMessage}
         createNotification={this.createNotification}
-        currentUser={this.state.currentUser.name} />
+        currentUser={this.state.currentUser.name}
+        userColor={this.state.currentUser.color}/>
       </fragment>
     );
   }
 }
 export default App;
 
+function randomColor() {
+    let colorList = ["#a8165c", "#a83a16", "#16a3a8", "#ad8c21"];
+    return colorList[Math.floor(Math.random() * 4)];
+}
